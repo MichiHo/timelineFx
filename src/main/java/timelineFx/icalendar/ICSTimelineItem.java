@@ -21,6 +21,11 @@ public class ICSTimelineItem implements TimelineItem{
 	public ICSTimelineItem(VEvent event) {
 		this.event = event;
 
+		System.out.println("-> "+event.toString());
+		
+		if(event.getStartDate().getDate()==null) {
+			System.out.println(event.getStartDate().getParameters());
+		}
 		start = LocalDateTime.ofInstant(event.getStartDate().getDate().toInstant(), 
 				ZoneId.systemDefault());
 		end = LocalDateTime.ofInstant(event.getEndDate().getDate().toInstant(), 
@@ -50,6 +55,11 @@ public class ICSTimelineItem implements TimelineItem{
 	@Override
 	public LocalDateTime getStart() {
 		return start;
+	}
+	
+	@Override
+	public String getID() {
+		return event.getUid().getValue();
 	}
 
 	@Override

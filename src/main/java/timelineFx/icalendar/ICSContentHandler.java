@@ -16,15 +16,20 @@ import org.apache.commons.lang3.tuple.Pair;
 import net.fortuna.ical4j.data.ContentHandler;
 import net.fortuna.ical4j.model.Calendar;
 import net.fortuna.ical4j.model.ComponentList;
+import net.fortuna.ical4j.model.Parameter;
+import net.fortuna.ical4j.model.ParameterList;
+import net.fortuna.ical4j.model.ParameterListFactory;
 import net.fortuna.ical4j.model.Property;
 import net.fortuna.ical4j.model.component.CalendarComponent;
 import net.fortuna.ical4j.model.component.VEvent;
+import net.fortuna.ical4j.model.parameter.Value;
 import net.fortuna.ical4j.model.property.Description;
 import net.fortuna.ical4j.model.property.DtEnd;
 import net.fortuna.ical4j.model.property.DtStart;
 import net.fortuna.ical4j.model.property.Name;
 import net.fortuna.ical4j.model.property.Summary;
 import net.fortuna.ical4j.model.property.Uid;
+import timelineFx.data.TimelineCategory;
 
 /**
  * ContentHandler-Implementation picking the information out of ICS files, that i need
@@ -47,6 +52,7 @@ public class ICSContentHandler implements ContentHandler {
 	List<Calendar> calendarList;
 	VEvent event;
 	String propertyValue, propertyType;
+	private String paramName;
 	boolean useParam = false;
 	boolean useProperty = false;
 
@@ -55,6 +61,7 @@ public class ICSContentHandler implements ContentHandler {
 	Map<String, Pair<String, String>> propertyParamMap;
 	HashSet<String> comPropertiesOfInterest;
 	HashSet<String> calPropertiesOfInterest;
+
 
 	public ICSContentHandler() {
 		calendar = new Calendar();
@@ -73,6 +80,10 @@ public class ICSContentHandler implements ContentHandler {
 		propertyParamMap = new HashMap<String, Pair<String, String>>();
 		//		propertyParamMap.put("DTSTART", Pair.of("VALUE", "DATE"));
 		//		propertyParamMap.put("DTEND", Pair.of("VALUE", "DATE"));
+	}
+	
+	public List<Calendar> getCreatedCalendars(){
+		return calendarList;
 	}
 
 	@Override
@@ -117,6 +128,7 @@ public class ICSContentHandler implements ContentHandler {
 	}
 	@Override
 	public void startProperty(String type) {
+		paramName = "";
 		if(state==State.COMPONENT) {
 			state = State.PROPERTY;
 			if( event!=null && comPropertiesOfInterest.contains(type)) {
@@ -162,9 +174,10 @@ public class ICSContentHandler implements ContentHandler {
 			throw new IllegalStateException();
 
 		if(useParam || (propertyParamMap.containsKey(propertyType) && 
-				propertyParamMap.get(propertyType).equals(Pair.of(first, second))))
+				propertyParamMap.get(propertyType).equals(Pair.of(first, second)))) {
 			useParam = true;
-		else
+			paramName = second;
+		} else
 			useParam = false;
 		deepLog("\t\tParameter "+first+" || "+second);
 	}
@@ -194,13 +207,19 @@ public class ICSContentHandler implements ContentHandler {
 
 	private void commitProperty() {
 		if(useProperty) {
-			System.out.println("\t\t"+propertyType+"="+propertyValue);
+			//System.out.println("\t\t"+propertyType+"="+propertyValue);
 			Property p;
 			if(state==State.COMPONENT) {
 				try {
 					switch(propertyType) {
 					case "DTSTART":
-						p = new DtStart(propertyValue);
+						if(!paramName.isEmpty()) {
+							p = new DtStart();
+							DtStart t = new DtStart();
+							t.getParameters().add(new Value(paramName));
+							t.setValue(propertyValue);
+						} else
+							p = new DtStart(propertyValue);
 						break;
 
 					case "DTEND":
@@ -222,8 +241,10 @@ public class ICSContentHandler implements ContentHandler {
 					default:
 						return;
 					}
+					System.out.println("\t"+p);
 					event.getProperties().add(p);
 				} catch(ParseException e) {
+					System.out.println("\tEXCEPTION "+e.getMessage());
 					return;
 				}
 			} else if (state == State.CALENDAR) {

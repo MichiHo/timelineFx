@@ -1,24 +1,44 @@
 package timelineFx.data;
 
 import java.util.List;
+import java.util.Vector;
 
-/**
- * Interface for Data Classes describing one Timeline-Category.
- * 
- * @author Michael Hochmuth
- *
- */
-public interface TimelineCategory {
+import net.fortuna.ical4j.model.Calendar;
+import net.fortuna.ical4j.model.Property;
+import net.fortuna.ical4j.model.component.CalendarComponent;
+import net.fortuna.ical4j.model.component.VEvent;
+import timelineFx.data.TimelineCategory;
+import timelineFx.data.TimelineItem;
+import timelineFx.icalendar.ICSTimelineItem;
 
-	/**
-	 * Name of this Category / Calendar
-	 * @return
-	 */
-	public String getName();
+public class TimelineCategory {
+	private Calendar calendar;
+	private List<TimelineItem> items;
 	
-	/**
-	 * List of all TimelineItems in this Category
-	 * @return
-	 */
-	public List<TimelineItem> getItems();
+	public TimelineCategory(Calendar cal) {
+		calendar = cal;
+		items = new Vector<TimelineItem>();
+		for(CalendarComponent c : calendar.getComponents()) {
+			if(c instanceof VEvent) {
+				items.add(new ICSTimelineItem((VEvent)c));
+			}
+		}
+	}
+	
+	
+	public String getName() {
+		Property p = calendar.getProperty("NAME");
+		if(p!=null) {
+			return p.getValue();
+		} else {
+			return "";
+		}
+	}
+
+	
+	public List<TimelineItem> getItems() {
+		return items;
+	}
+	
+	
 }

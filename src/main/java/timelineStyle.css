@@ -1,0 +1,9 @@
+.tl-viewer {
+	-fx-font-family: "Corbel";
+	-fx-background: rgb(235, 216, 186);
+}
+
+.tl-timebar {
+	/*-fx-stroke-width: 30px;*/
+	-fx-stroke: black;
+}
