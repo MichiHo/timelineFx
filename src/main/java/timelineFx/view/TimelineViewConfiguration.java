@@ -14,6 +14,8 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import timelineFx.data.DateTimeProperty;
 
 /**
@@ -26,10 +28,10 @@ import timelineFx.data.DateTimeProperty;
 public class TimelineViewConfiguration {
 	private List<InvalidationListener> listeners = new Vector<InvalidationListener>();
 	/**
-	 * If true, events that are only partially inside the view are
+	 * If true, items that are only partially inside the view are
 	 * still shown
 	 */
-	private BooleanProperty showProtudingEvents = new SimpleBooleanProperty(true);
+	private BooleanProperty showProtudingItems = new SimpleBooleanProperty(true);
 	
 	/**
 	 * First Displayed Time in the current View
@@ -64,8 +66,17 @@ public class TimelineViewConfiguration {
 	private DoubleProperty gridUnitWidth = new SimpleDoubleProperty(100.0);
 	
 
-	private DoubleProperty timebarEventDistance = new SimpleDoubleProperty(100.0);
+	private DoubleProperty timebarItemDistance = new SimpleDoubleProperty(100.0);
 	
+	/**
+	 * The width, in pixels, that each painted item takes up at least.
+	 * Items with no duration will always have this width.
+	 */
+	private DoubleProperty minItemWidth = new SimpleDoubleProperty(30.0);
+	
+	private DoubleProperty itemFontSize = new SimpleDoubleProperty(12.0);
+	
+	private StringProperty itemFontName = new SimpleStringProperty("Corbel");
 	
 	public TimelineViewConfiguration() {
 		InvalidationListener l = o -> notifyListeners(o);
@@ -105,18 +116,18 @@ public class TimelineViewConfiguration {
 		listeners.remove(l);
 	}
 	
-	public final BooleanProperty showProtudingEventsProperty() {
-		return this.showProtudingEvents;
+	public final BooleanProperty showProtudingItemsProperty() {
+		return this.showProtudingItems;
 	}
 	
 
-	public final boolean isShowProtudingEvents() {
-		return this.showProtudingEventsProperty().get();
+	public final boolean isShowProtudingItems() {
+		return this.showProtudingItemsProperty().get();
 	}
 	
 
-	public final void setShowProtudingEvents(final boolean showProtudingEvents) {
-		this.showProtudingEventsProperty().set(showProtudingEvents);
+	public final void setShowProtudingItems(final boolean showProtudingItems) {
+		this.showProtudingItemsProperty().set(showProtudingItems);
 	}
 
 
@@ -219,19 +230,64 @@ public class TimelineViewConfiguration {
 		this.timeBarWidthProperty().set(timeBarWidth);
 	}
 
-	public final DoubleProperty timebarEventDistanceProperty() {
-		return this.timebarEventDistance;
+	public final DoubleProperty timebarItemDistanceProperty() {
+		return this.timebarItemDistance;
 	}
 	
 
-	public final double getTimebarEventDistance() {
-		return this.timebarEventDistanceProperty().get();
+	public final double getTimebarItemDistance() {
+		return this.timebarItemDistanceProperty().get();
 	}
 	
 
-	public final void setTimebarEventDistance(final double timebarEventDistance) {
-		this.timebarEventDistanceProperty().set(timebarEventDistance);
+	public final void setTimebarItemDistance(final double timebarItemDistance) {
+		this.timebarItemDistanceProperty().set(timebarItemDistance);
 	}
+
+	public final DoubleProperty minItemWidthProperty() {
+		return this.minItemWidth;
+	}
+	
+
+	public final double getMinItemWidth() {
+		return this.minItemWidthProperty().get();
+	}
+	
+
+	public final void setMinItemWidth(final double minItemWidth) {
+		this.minItemWidthProperty().set(minItemWidth);
+	}
+
+	public final DoubleProperty itemFontSizeProperty() {
+		return this.itemFontSize;
+	}
+	
+
+	public final double getItemFontSize() {
+		return this.itemFontSizeProperty().get();
+	}
+	
+
+	public final void setItemFontSize(final double itemFontSize) {
+		this.itemFontSizeProperty().set(itemFontSize);
+	}
+	
+
+	public final StringProperty itemFontNameProperty() {
+		return this.itemFontName;
+	}
+	
+
+	public final String getItemFontName() {
+		return this.itemFontNameProperty().get();
+	}
+	
+
+	public final void setItemFontName(final String itemFontName) {
+		this.itemFontNameProperty().set(itemFontName);
+	}
+	
+	
 	
 	
 	

@@ -1,36 +1,40 @@
 package timelineFx.view;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoField;
-import java.time.temporal.TemporalField;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.PropertyResourceBundle;
-import java.util.ResourceBundle;
+
 
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
-import javafx.beans.property.Property;
+import javafx.geometry.Insets;
 import javafx.scene.Group;
 import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.input.ScrollEvent;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Polyline;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import timelineFx.data.TimelineCategory;
 import timelineFx.data.TimelineItem;
 
-public class TimelineView extends Pane{
-	private enum GridUnit {
-		YEARS(365*30*24*60*60),MONTHS(30*24*60*60),DAYS(24*60*60),HOURS(60*60),MINUTES(60),SECONDS(1);
-		public final long seconds;
-		private GridUnit(long s) {seconds = s;}
+public class TimelineView extends StackPane{
+	private enum DragMode {
+		NONE, SELECT_TIME_FRAME
 	}
 	private static List<ChronoField> fields = Arrays.asList(ChronoField.SECOND_OF_MINUTE, ChronoField.MINUTE_OF_HOUR,
 			ChronoField.HOUR_OF_DAY,ChronoField.DAY_OF_MONTH,
@@ -43,6 +47,11 @@ public class TimelineView extends Pane{
 	private long startSec = 0L, endSec = Long.MAX_VALUE;
 	private ChronoField currentUnit = ChronoField.DAY_OF_MONTH;
 	private Map<Double, LocalDateTime> grid = new HashMap<Double,LocalDateTime>();
+	private DragMode dragMode = DragMode.NONE;
+	private double dragX1;
+	
+	private Pane layerBackground, layerContent, layerContentTitles, layerTop, layerOverlay;
+	private Label currentMouseTimeLabel;
 	
 	List<TimelineCategory> categories = new ArrayList<>();
 
@@ -50,6 +59,49 @@ public class TimelineView extends Pane{
 		this.getStyleClass().add(TimelineCSS.CLASS_VIEWER);
 		bindReshape(this.widthProperty());
 		setConfiguration(new TimelineViewConfiguration());
+		
+		currentMouseTimeLabel = new Label();
+		currentMouseTimeLabel.relocate(5000, getHeight()-50.0);
+		getChildren().add(currentMouseTimeLabel);
+		
+		this.addEventFilter(MouseEvent.MOUSE_MOVED, e->{
+			currentMouseTimeLabel.relocate(e.getX(), getHeight()-50.0);
+			currentMouseTimeLabel.setText(xToTime(e.getX()).toString());
+		});
+		this.addEventFilter(ScrollEvent.SCROLL, e -> {
+			scale(e.getX(), e.getDeltaX());
+		});
+		this.addEventFilter(MouseEvent.DRAG_DETECTED, e -> {
+			dragMode = DragMode.SELECT_TIME_FRAME;
+			dragX1 = e.getX();
+		});
+		
+		this.addEventFilter(MouseEvent.MOUSE_DRAGGED, e -> {
+			if(dragMode==DragMode.SELECT_TIME_FRAME) {
+				// SHOW TIME FRAME THING
+			}
+		});
+		
+		this.addEventFilter(MouseEvent.MOUSE_RELEASED, e -> {
+			if(dragMode==DragMode.SELECT_TIME_FRAME) {
+				
+				double x2 = e.getX();
+				if(x2<dragX1) {
+					double t = x2;
+					x2 = dragX1;
+					dragX1 = t;
+				}
+				if(x2!=dragX1) {
+					LocalDateTime t1 = xToTime(dragX1);
+					LocalDateTime t2 = xToTime(x2);
+					conf.setViewStart(t1);
+					conf.setViewEnd(t2);
+				}
+				dragMode = DragMode.NONE;
+				dragX1 = 0.0;
+			}
+		});
+		
 		
 		reshape();
 	}
@@ -77,6 +129,7 @@ public class TimelineView extends Pane{
 	}
 	
 	public void reshape() {
+		long measure = System.currentTimeMillis();
 		long seconds = endSec-startSec;
 		if(seconds == 0) return;
 		if(seconds<0) {
@@ -87,6 +140,24 @@ public class TimelineView extends Pane{
 		}
 		
 		getChildren().clear();
+		
+		layerBackground = new Pane();
+		getChildren().add(layerBackground);
+		layerContent = new Pane();
+		getChildren().add(layerContent);
+		layerContentTitles = new Pane();
+		layerContentTitles.setBackground(Background.EMPTY);
+		getChildren().add(layerContentTitles);
+		layerTop = new Pane();
+		layerTop.setBackground(Background.EMPTY);
+		getChildren().add(layerTop);
+		layerOverlay = new Pane();
+		layerOverlay.setBackground(Background.EMPTY);
+		getChildren().add(layerOverlay);
+		
+		Color backgroundColor = Color.LIGHTGOLDENRODYELLOW;
+		layerBackground.setBackground(new Background(
+				new BackgroundFill(backgroundColor, CornerRadii.EMPTY, Insets.EMPTY)));
 		
 		// Bottom: Timebar with years/months/etc
 		/*
@@ -118,6 +189,7 @@ public class TimelineView extends Pane{
 			currentUnit = ChronoField.MONTH_OF_YEAR;
 			increment = chooseIncrement(unitsPerTick, 1,3,6);
 		} else  {
+			unitsPerTick/=365;
 			currentUnit = ChronoField.YEAR;
 			increment = chooseIncrement(unitsPerTick, 1,5,10,50,100,250,500,1000,1500);
 		}
@@ -144,7 +216,6 @@ public class TimelineView extends Pane{
 		double x;
 		Polyline tick;
 		Label ticklabel;
-		int i = 0;
 		while(!start.isAfter(conf.getViewEnd())) {
 			x = timeToX(start);
 			grid.put(x, start);
@@ -153,7 +224,7 @@ public class TimelineView extends Pane{
 					x+conf.getTimeBarWidth()*.5, barY,
 					x, barY+conf.getTimeBarWidth()*.5);
 			tick.setStrokeWidth(conf.getTimeBarWidth()*0.3);
-			tick.setStroke(Color.WHITE);
+			tick.setStroke(backgroundColor);
 			tick.getStyleClass().add(TimelineCSS.CLASS_TIMEBAR_TICK);
 			timebar.getChildren().add(tick);
 			
@@ -163,10 +234,9 @@ public class TimelineView extends Pane{
 			timebar.getChildren().add(ticklabel);
 			
 			
-			++i;
 			start = start.plus(increment, currentUnit.getBaseUnit());
 		}
-		getChildren().add(timebar);
+		layerTop.getChildren().add(timebar);
 		
 		//double gridUnit = getDisplayWidth()/gridUnits;
 		
@@ -183,35 +253,73 @@ public class TimelineView extends Pane{
 		 * - Add arrowheads for continuing events
 		 */
 		
-		double baseline = barY-conf.getTimebarEventDistance();
-		Group confItems;
-		double x1, x2;
+		double baseline = barY-conf.getTimebarItemDistance();
+		double x1, x2, x3;
+		boolean leapL, leapR;
+		Text text;
+		Rectangle textRect, itemRect;
+		Font itemFont = new Font(conf.getItemFontName(), conf.getItemFontSize());
+		
 		for(TimelineCategory cat : categories) {
-			confItems = new Group();
+			Color itemRectColor = Color.GREEN;
+			Color textRectColor = itemRectColor.interpolate(backgroundColor, 0.4);
+			
 			for(TimelineItem item : cat.getItems()) {
+				leapL = false; leapR = false;
 				x1 = timeToX(item.getStart());
 				x2 = timeToX(item.getEnd());
-				if(x1<getRightOffset()) {
-					// might leap in from the left
+				if(!item.hasDuration() || x2-x1 < conf.getMinItemWidth())
+					x2 = x1 + conf.getMinItemWidth();
+				
+				if(x1<getLeftOffset()) {
 					if(x2 > getRightOffset()) {
-						
+						// leaps BOTH
+						x1 = getLeftOffset();
+						x2 = getRightOffset();
+						leapL = true;
+						leapR = true;
+					} else if(x2 > getLeftOffset()) {
+						// leap in from the left
+						x1 = getLeftOffset();
+						leapL = true;
 					}
-				} else {
+				} else if(x1 < getWidth()-getRightOffset()){
 					if(x2 > getWidth()-getRightOffset()) {
 						// leap to right
-					} else {
-						Label l = new Label(item.getName());
-						Rectangle r = new Rectangle(x1,baseline,l.getWidth(),l.getHeight());
-						r.setFill(Color.GREEN);
-						l.relocate(x1, baseline);
-						confItems.getChildren().add(r);
-						confItems.getChildren().add(l);
-					}
+						x2 = getWidth()-getRightOffset();
+						leapR = true;
+					} 
+					// else = normal case
+				} else continue;
+				
+				// TODO show leap arrows
+				
+				itemRect = new Rectangle(x1, baseline, x2-x1, 30.0);
+				itemRect.setFill(itemRectColor);
+				layerContent.getChildren().add(itemRect);
+				
+				
+				text = new Text(item.getName());
+				text.relocate(x1, baseline);
+				text.setFont(itemFont);
+				x3 = text.getBoundsInLocal().getWidth()+x1;
+				System.out.println("item " + x1 + " , " + x2 + " , " + x3);
+				if(x3 > x2) {
+					textRect = new Rectangle(x2,baseline,x3-x2,30.0);
+					textRect.setFill(textRectColor);
+					layerContentTitles.getChildren().add(textRect);
 				}
+				layerContentTitles.getChildren().add(text);	
+				
 				
 			}
-			getChildren().add(confItems);
 		}
+		layerOverlay.getChildren().add(currentMouseTimeLabel);
+		System.out.println("reshape in "+(System.currentTimeMillis()-measure)+" ms");
+	}
+	
+	private void registerEventHandlers(TimelineItem item, Node node) {
+		
 	}
 	
 	/**
@@ -225,6 +333,26 @@ public class TimelineView extends Pane{
 			reshape();
 		}
 	}
+
+	public void scale(double xPivot, double amount) {
+		double factor;
+		if(xPivot<=getLeftOffset()) 
+			factor = 0.0;
+		else if(xPivot >= getWidth()-getRightOffset()) 
+			factor = 1.0;
+		else 
+			factor = (xPivot-getRightOffset())/(getWidth()-getRightOffset()-getLeftOffset());
+		
+		System.out.println("Factor "+factor);
+		LocalDateTime newStart = xToTime(getLeftOffset()+factor*amount*100.0);
+		LocalDateTime newEnd = xToTime(getWidth()-getRightOffset()-(1.0-factor)*amount*100.0);
+		
+		conf.setViewStart(newStart);
+		conf.setViewEnd(newEnd);
+
+		startSec = conf.getViewStart().toEpochSecond(conf.getZoneOffset());
+		endSec = conf.getViewEnd().toEpochSecond(conf.getZoneOffset());
+	}
 	
 	private void bindReshape(Observable... p) {
 		for(Observable pp : p)
@@ -232,22 +360,19 @@ public class TimelineView extends Pane{
 	}
 	
 	/**
-	 * Find the smallest of the given increments that's bigger/equal to 
+	 * Find the smallest of the given increment-values that's bigger/equal to 
 	 * the given value
-	 * @param value
-	 * @param increments
+	 * @param value 
+	 * @param increments Values (in ascending order!)
 	 * @return One value from the given increments
 	 */
 	int chooseIncrement(int value, int... increments) {
-		System.out.print("chInc for "+value+" : ");
-		int res = 10000;
+		int res = increments[increments.length-1];
 		for(int i : increments) {
 			if(i >= value && i < res) {
 				res = i;
-				System.out.print(""+res+" ");
 			}
 		}
-		System.out.println();
 		return res;
 	}
 	
@@ -264,7 +389,8 @@ public class TimelineView extends Pane{
 		if(startSec==endSec) return LocalDateTime.MIN;
 		
 		long s = startSec + 
-				(long)((x-getLeftOffset())/(getWidth()-getLeftOffset()-getRightOffset()))*(endSec-startSec);
+				(long)(((x-getLeftOffset())/(getWidth()-getLeftOffset()-getRightOffset()))
+						*(endSec-startSec));
 		return LocalDateTime.ofEpochSecond(s, 0, conf.getZoneOffset());
 	}
 	
