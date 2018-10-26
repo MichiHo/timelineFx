@@ -57,7 +57,7 @@ public class TimelineViewConfiguration {
 	/**
 	 * Width of the Line that is the TimeBar, in pixels
 	 */
-	private DoubleProperty timeBarWidth = new SimpleDoubleProperty(50.0);
+	private DoubleProperty timeBarWidth = new SimpleDoubleProperty(20.0);
 	
 	/**
 	 * The width, in pixels, to which each unit of the Timebar-Grid
@@ -65,18 +65,50 @@ public class TimelineViewConfiguration {
 	 */
 	private DoubleProperty gridUnitWidth = new SimpleDoubleProperty(100.0);
 	
-
-	private DoubleProperty timebarItemDistance = new SimpleDoubleProperty(100.0);
+	/**
+	 * Distance, in pixels, between the timebar and the first categorie's items
+	 */
+	private DoubleProperty timebarItemDistance = new SimpleDoubleProperty(10.0);
 	
 	/**
 	 * The width, in pixels, that each painted item takes up at least.
 	 * Items with no duration will always have this width.
 	 */
-	private DoubleProperty minItemWidth = new SimpleDoubleProperty(30.0);
+	private DoubleProperty minItemWidth = new SimpleDoubleProperty(5.0);
+	
+	/**
+	 * The amount, in pixels, by which the real item-length protudes
+	 * downwards from the item's continued label.
+	 */
+	private DoubleProperty itemFlag = new SimpleDoubleProperty(10.0);
+
+	/**
+	 * Distance, in pixels, between layers of Items within one category
+	 * (on the y-axis)
+	 */
+	private DoubleProperty itemDistance = new SimpleDoubleProperty(7.0);
+
+	/**
+	 * Padding between Item borders and the Text
+	 */
+	private DoubleProperty itemPadding = new SimpleDoubleProperty(5.0);
+	
 	
 	private DoubleProperty itemFontSize = new SimpleDoubleProperty(12.0);
 	
 	private StringProperty itemFontName = new SimpleStringProperty("Corbel");
+
+	/**
+	 * The amount, between 0.0 and 1.0, to which the rect under the
+	 * item-text that protudes the real time-range of it is shaded
+	 * to the background.s
+	 */
+	private DoubleProperty itemColorShade = new SimpleDoubleProperty(0.5);
+	
+	/**
+	 * Distance, in pixels, between the Items of two categories
+	 */
+	private DoubleProperty categoryDistance = new SimpleDoubleProperty(20.0);
 	
 	public TimelineViewConfiguration() {
 		InvalidationListener l = o -> notifyListeners(o);
@@ -286,6 +318,81 @@ public class TimelineViewConfiguration {
 	public final void setItemFontName(final String itemFontName) {
 		this.itemFontNameProperty().set(itemFontName);
 	}
+
+	public final DoubleProperty itemFlagProperty() {
+		return this.itemFlag;
+	}
+	
+
+	public final double getItemFlag() {
+		return this.itemFlagProperty().get();
+	}
+	
+
+	public final void setItemFlag(final double itemFlag) {
+		this.itemFlagProperty().set(itemFlag);
+	}
+	
+
+	public final DoubleProperty itemDistanceProperty() {
+		return this.itemDistance;
+	}
+	
+
+	public final double getItemDistance() {
+		return this.itemDistanceProperty().get();
+	}
+	
+
+	public final void setItemDistance(final double itemDistance) {
+		this.itemDistanceProperty().set(itemDistance);
+	}
+	
+
+	public final DoubleProperty itemPaddingProperty() {
+		return this.itemPadding;
+	}
+	
+
+	public final double getItemPadding() {
+		return this.itemPaddingProperty().get();
+	}
+	
+
+	public final void setItemPadding(final double itemPadding) {
+		this.itemPaddingProperty().set(itemPadding);
+	}
+	
+
+	public final DoubleProperty categoryDistanceProperty() {
+		return this.categoryDistance;
+	}
+	
+
+	public final double getCategoryDistance() {
+		return this.categoryDistanceProperty().get();
+	}
+	
+
+	public final void setCategoryDistance(final double categoryDistance) {
+		this.categoryDistanceProperty().set(categoryDistance);
+	}
+
+	public final DoubleProperty itemColorShadeProperty() {
+		return this.itemColorShade;
+	}
+	
+
+	public final double getItemColorShade() {
+		return this.itemColorShadeProperty().get();
+	}
+	
+
+	public final void setItemColorShade(final double itemColorShade) {
+		this.itemColorShadeProperty().set(itemColorShade);
+	}
+	
+	
 	
 	
 	

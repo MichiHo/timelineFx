@@ -117,18 +117,13 @@ public class TimelineView extends StackPane{
 		
 		this.conf = conf;
 		
-		startSec = conf.getViewStart().toEpochSecond(conf.getZoneOffset());
-		endSec = conf.getViewEnd().toEpochSecond(conf.getZoneOffset());
-		conf.viewStartProperty().addListener(
-				(c,o,n)->{startSec = n.toEpochSecond(conf.getZoneOffset());});
-		conf.viewEndProperty().addListener(
-				(c,o,n)->{endSec = n.toEpochSecond(conf.getZoneOffset());});
-		
 		conf.addListener(confListener);
 		reshape();
 	}
 	
 	public void reshape() {
+		startSec = conf.getViewStart().toEpochSecond(conf.getZoneOffset());
+		endSec = conf.getViewEnd().toEpochSecond(conf.getZoneOffset());
 		long measure = System.currentTimeMillis();
 		long seconds = endSec-startSec;
 		if(seconds == 0) return;
@@ -157,7 +152,8 @@ public class TimelineView extends StackPane{
 		
 		Color backgroundColor = Color.LIGHTGOLDENRODYELLOW;
 		layerBackground.setBackground(new Background(
-				new BackgroundFill(backgroundColor, CornerRadii.EMPTY, Insets.EMPTY)));
+				new BackgroundFill(backgroundColor, 
+						CornerRadii.EMPTY, Insets.EMPTY)));
 		
 		// Bottom: Timebar with years/months/etc
 		/*
@@ -191,12 +187,15 @@ public class TimelineView extends StackPane{
 		} else  {
 			unitsPerTick/=365;
 			currentUnit = ChronoField.YEAR;
-			increment = chooseIncrement(unitsPerTick, 1,5,10,50,100,250,500,1000,1500);
+			increment = chooseIncrement(unitsPerTick, 1,5,10,50,
+					100,250,500,1000,1500);
 		}
 
-		System.out.println("choose "+currentUnit+" as unit with increment "+increment+" based on "+unitsPerTick);
+		System.out.println("choose "+currentUnit+" as unit with increment "
+				+increment+" based on "+unitsPerTick);
 		double barY = getHeight()-100.0;
-		Line timebarLine = new Line(getLeftOffset(), barY, getWidth()-getRightOffset(), barY);
+		Line timebarLine = new Line(getLeftOffset(), barY, 
+				getWidth()-getRightOffset(), barY);
 		timebarLine.getStyleClass().add(TimelineCSS.CLASS_TIMEBAR);
 		timebarLine.setStrokeWidth(conf.getTimeBarWidth());
 		timebar.getChildren().add(timebarLine);
@@ -253,8 +252,9 @@ public class TimelineView extends StackPane{
 		 * - Add arrowheads for continuing events
 		 */
 		
-		double baseline = barY-conf.getTimebarItemDistance();
+		double baseline = barY-conf.getTimebarItemDistance(), y;
 		double x1, x2, x3;
+		int layer = 0;
 		boolean leapL, leapR;
 		Text text;
 		Rectangle textRect, itemRect;
@@ -262,8 +262,13 @@ public class TimelineView extends StackPane{
 		
 		for(TimelineCategory cat : categories) {
 			Color itemRectColor = Color.GREEN;
-			Color textRectColor = itemRectColor.interpolate(backgroundColor, 0.4);
+			Color textRectColor = itemRectColor.interpolate(backgroundColor,
+					conf.getItemColorShade());
 			
+			List<Double> layers = new ArrayList<Double>();
+			layers.add(-10000.0);
+			
+			cat.sortByStartDate();
 			for(TimelineItem item : cat.getItems()) {
 				leapL = false; leapR = false;
 				x1 = timeToX(item.getStart());
@@ -294,18 +299,39 @@ public class TimelineView extends StackPane{
 				
 				// TODO show leap arrows
 				
-				itemRect = new Rectangle(x1, baseline, x2-x1, 30.0);
+				text = new Text(item.getName());
+				text.setFont(itemFont);
+				x3 = text.getBoundsInLocal().getWidth()+x1
+						+ 2* conf.getItemPadding();
+				
+				// Decide Layer
+				layer = 0;
+				while(layers.get(layer)>x1) {
+					layer++;
+					if(layer>=layers.size()) {
+						layers.add(x3);
+						break;
+					}
+				}
+				layers.set(layer, x3);
+				
+				double itemHeight = conf.getItemFlag() + conf.getItemFontSize()
+						+ 2*conf.getItemPadding();
+				
+				y = baseline -conf.getTimebarItemDistance() 
+						- layer*(conf.getItemDistance()	+ itemHeight);
+				
+				itemRect = new Rectangle(x1, y-itemHeight, x2-x1, 
+						itemHeight + baseline-y);
 				itemRect.setFill(itemRectColor);
 				layerContent.getChildren().add(itemRect);
 				
 				
-				text = new Text(item.getName());
-				text.relocate(x1, baseline);
-				text.setFont(itemFont);
-				x3 = text.getBoundsInLocal().getWidth()+x1;
-				System.out.println("item " + x1 + " , " + x2 + " , " + x3);
+				text.relocate(x1+conf.getItemPadding(), 
+						y-itemHeight + conf.getItemPadding());
 				if(x3 > x2) {
-					textRect = new Rectangle(x2,baseline,x3-x2,30.0);
+					textRect = new Rectangle(x2,y-itemHeight,x3-x2,
+							conf.getItemFontSize()+2*conf.getItemPadding());
 					textRect.setFill(textRectColor);
 					layerContentTitles.getChildren().add(textRect);
 				}
@@ -315,7 +341,8 @@ public class TimelineView extends StackPane{
 			}
 		}
 		layerOverlay.getChildren().add(currentMouseTimeLabel);
-		System.out.println("reshape in "+(System.currentTimeMillis()-measure)+" ms");
+		System.out.println("reshape in " + 
+				(System.currentTimeMillis()-measure)+" ms");
 	}
 	
 	private void registerEventHandlers(TimelineItem item, Node node) {
@@ -332,6 +359,25 @@ public class TimelineView extends StackPane{
 			categories.add(cat);
 			reshape();
 		}
+	}
+	
+	/**
+	 * Zooms on the time-axis to fit all Items in all Categories inside
+	 */
+	public void zoomToContent() {
+		LocalDateTime start = LocalDateTime.MAX;
+		LocalDateTime end = LocalDateTime.MIN;
+		for(TimelineCategory cat : categories) {
+			for(TimelineItem item : cat.getItems()) {
+				if(item.getStart().isBefore(start))
+					start = item.getStart();
+				if(item.getEnd().isAfter(end))
+					end = item.getEnd();
+			}
+		}
+		conf.setViewStart(start);
+		conf.setViewEnd(end);
+		reshape();
 	}
 
 	public void scale(double xPivot, double amount) {
@@ -405,6 +451,10 @@ public class TimelineView extends StackPane{
 	
 	double getDisplayWidth() {
 		return getWidth()-getLeftOffset()-getRightOffset();
+	}
+
+	public TimelineViewConfiguration getConfiguration() {
+		return conf;
 	}
 	
 }

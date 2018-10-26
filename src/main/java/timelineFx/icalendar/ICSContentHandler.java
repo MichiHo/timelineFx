@@ -241,7 +241,7 @@ public class ICSContentHandler implements ContentHandler {
 					default:
 						return;
 					}
-					System.out.println("\t"+p);
+					//FSystem.out.println("\t"+p);
 					event.getProperties().add(p);
 				} catch(ParseException e) {
 					System.out.println("\tEXCEPTION "+e.getMessage());
@@ -267,12 +267,12 @@ public class ICSContentHandler implements ContentHandler {
 			event.validate();
 			calendar.getComponents().add(event);
 			
-			System.out.println("\tcommit (now "+calendar.getComponents().size()+" components)");
+			//System.out.println("\tcommit (now "+calendar.getComponents().size()+" components)");
 		}
 	}
 
 	private void commitCalendar() {
-		System.out.println("COMMIT CALENDAR "+calendar.getProperties());
+		//System.out.println("COMMIT CALENDAR "+calendar.getProperties());
 		calendarList.add(calendar);
 	}
 }

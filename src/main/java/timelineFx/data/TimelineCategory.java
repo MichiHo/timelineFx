@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Vector;
 
 import net.fortuna.ical4j.model.Calendar;
+import net.fortuna.ical4j.model.ComponentList;
 import net.fortuna.ical4j.model.Property;
 import net.fortuna.ical4j.model.component.CalendarComponent;
 import net.fortuna.ical4j.model.component.VEvent;
@@ -18,6 +19,7 @@ public class TimelineCategory {
 	public TimelineCategory(Calendar cal) {
 		calendar = cal;
 		items = new Vector<TimelineItem>();
+		
 		for(CalendarComponent c : calendar.getComponents()) {
 			if(c instanceof VEvent) {
 				items.add(new ICSTimelineItem((VEvent)c));
@@ -35,6 +37,15 @@ public class TimelineCategory {
 		}
 	}
 
+	/**
+	 * Sorts the List of Items this Category holds by
+	 * their start dates.
+	 */
+	public void sortByStartDate() {
+		items.sort((a,b)->{
+			return a.getStart().compareTo(b.getStart());
+		});
+	}
 	
 	public List<TimelineItem> getItems() {
 		return items;

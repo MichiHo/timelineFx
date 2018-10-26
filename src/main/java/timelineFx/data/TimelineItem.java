@@ -3,7 +3,7 @@ package timelineFx.data;
 import java.time.LocalDateTime;
 
 /**
- * A single Item in a Timeline, namely a Event in Time,
+ * A single Item in a Timeline, a Event in Time,
  * with start-date and possibly end-date (if it is to
  * be a non-duration event, <code>hasDuration()</code> should
  * return false.
