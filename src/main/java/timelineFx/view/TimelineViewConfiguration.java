@@ -4,6 +4,7 @@ import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Locale;
 import java.util.Vector;
 
 import javafx.beans.InvalidationListener;
@@ -50,9 +51,20 @@ public class TimelineViewConfiguration {
 			new SimpleObjectProperty<ZoneOffset>(ZoneOffset.UTC);
 
 	/**
+	 * Locale used in the Timeline
+	 */
+	private ObjectProperty<Locale> locale = 
+			new SimpleObjectProperty<Locale>(Locale.ENGLISH);
+	
+	/**
 	 * Width of the SideBar with the category names
 	 */
 	private DoubleProperty sideBarWidth = new SimpleDoubleProperty(200.0);
+
+	/**
+	 * Width of the right Bar with some leap arrows
+	 */
+	private DoubleProperty rightBarWidth = new SimpleDoubleProperty(10.0);
 	
 	/**
 	 * Width of the Line that is the TimeBar, in pixels
@@ -64,6 +76,11 @@ public class TimelineViewConfiguration {
 	 * tries to snap.
 	 */
 	private DoubleProperty gridUnitWidth = new SimpleDoubleProperty(100.0);
+	
+
+	private DoubleProperty minorTickFontSize = new SimpleDoubleProperty(15.0);
+
+	private DoubleProperty majorTickFontSize = new SimpleDoubleProperty(20.0);
 	
 	/**
 	 * Distance, in pixels, between the timebar and the first categorie's items
@@ -112,6 +129,9 @@ public class TimelineViewConfiguration {
 	
 	public TimelineViewConfiguration() {
 		InvalidationListener l = o -> notifyListeners(o);
+		
+		setViewStart(LocalDateTime.now().minusHours(12L));
+		setViewEnd(LocalDateTime.now().plusHours(12L));
 		
 		// Add listeners to all observable fields
 		for(Field f : this.getClass().getDeclaredFields()) {
@@ -391,6 +411,63 @@ public class TimelineViewConfiguration {
 	public final void setItemColorShade(final double itemColorShade) {
 		this.itemColorShadeProperty().set(itemColorShade);
 	}
+
+	public final DoubleProperty rightBarWidthProperty() {
+		return this.rightBarWidth;
+	}
+	
+
+	public final double getRightBarWidth() {
+		return this.rightBarWidthProperty().get();
+	}
+	
+
+	public final void setRightBarWidth(final double rightBarWidth) {
+		this.rightBarWidthProperty().set(rightBarWidth);
+	}
+
+	public Locale getLocale() {
+		return locale.get();
+	}
+
+	public void setLocale(Locale locale) {
+		this.locale.set(locale);
+	}
+	
+	public ObjectProperty<Locale> localeProperty(){
+		return locale;
+	}
+
+	public final DoubleProperty minorTickFontSizeProperty() {
+		return this.minorTickFontSize;
+	}
+	
+
+	public final double getMinorTickFontSize() {
+		return this.minorTickFontSizeProperty().get();
+	}
+	
+
+	public final void setMinorTickFontSize(final double minorTickFontSize) {
+		this.minorTickFontSizeProperty().set(minorTickFontSize);
+	}
+	
+
+	public final DoubleProperty majorTickFontSizeProperty() {
+		return this.majorTickFontSize;
+	}
+	
+
+	public final double getMajorTickFontSize() {
+		return this.majorTickFontSizeProperty().get();
+	}
+	
+
+	public final void setMajorTickFontSize(final double majorTickFontSize) {
+		this.majorTickFontSizeProperty().set(majorTickFontSize);
+	}
+	
+	
 	
 	
 	

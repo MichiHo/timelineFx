@@ -1,40 +1,42 @@
 package timelineFx.data;
 
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
 
-import net.fortuna.ical4j.model.Calendar;
-import net.fortuna.ical4j.model.ComponentList;
-import net.fortuna.ical4j.model.Property;
-import net.fortuna.ical4j.model.component.CalendarComponent;
-import net.fortuna.ical4j.model.component.VEvent;
+import javafx.scene.paint.Color;
 import timelineFx.data.TimelineCategory;
 import timelineFx.data.TimelineItem;
-import timelineFx.icalendar.ICSTimelineItem;
 
 public class TimelineCategory {
-	private Calendar calendar;
-	private List<TimelineItem> items;
+	private List<TimelineItem> items = new Vector<TimelineItem>();
+	private Color color;
+	private String name;
 	
-	public TimelineCategory(Calendar cal) {
-		calendar = cal;
-		items = new Vector<TimelineItem>();
+	private static double defaultColorSaturation = 0.7,
+			defaultColorBrightness = 1.0;
+	private static List<Color> defaultColors = Arrays.asList(
+			Color.hsb(0.0,defaultColorSaturation,defaultColorBrightness),
+			Color.hsb(60.0,defaultColorSaturation,defaultColorBrightness),
+			Color.hsb(120.0,defaultColorSaturation,defaultColorBrightness),
+			Color.hsb(180.0,defaultColorSaturation,defaultColorBrightness),
+			Color.hsb(240.0,defaultColorSaturation,defaultColorBrightness),
+			Color.hsb(300.0,defaultColorSaturation,defaultColorBrightness));
+	private static int defaultColorIndex = 0;
+	static Color nextDefaultColor() {
+		return defaultColors.get(defaultColorIndex++ %defaultColors.size());
 		
-		for(CalendarComponent c : calendar.getComponents()) {
-			if(c instanceof VEvent) {
-				items.add(new ICSTimelineItem((VEvent)c));
-			}
-		}
+	}
+	
+	public TimelineCategory(String name) {
+		this.name = name;
+		color = nextDefaultColor();
 	}
 	
 	
 	public String getName() {
-		Property p = calendar.getProperty("NAME");
-		if(p!=null) {
-			return p.getValue();
-		} else {
-			return "";
-		}
+		return name;
 	}
 
 	/**
@@ -49,6 +51,14 @@ public class TimelineCategory {
 	
 	public List<TimelineItem> getItems() {
 		return items;
+	}
+
+	public Color getColor() {
+		return color;
+	}
+
+	public void setColor(Color color) {
+		this.color = color;
 	}
 	
 	

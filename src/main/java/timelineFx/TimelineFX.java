@@ -24,6 +24,7 @@ import net.fortuna.ical4j.data.ParserException;
 import net.fortuna.ical4j.model.Calendar;
 import timelineFx.data.TimelineCategory;
 import timelineFx.icalendar.ICSContentHandler;
+import timelineFx.icalendar.ICalendarTools;
 import timelineFx.view.SetupPane;
 import timelineFx.view.TimelineView;
 
@@ -35,7 +36,7 @@ import timelineFx.view.TimelineView;
  */
 public class TimelineFX extends Application {
 		
-		Scene scene;
+	Scene scene;
 	BorderPane root;
 	TimelineView timelineView;
 	
@@ -46,14 +47,10 @@ public class TimelineFX extends Application {
 		timelineView = new TimelineView();
 		root.setCenter(timelineView);
 		
-		CalendarParser parser = CalendarParserFactory.getInstance().createParser();
-		ICSContentHandler handler = new ICSContentHandler();
-		parser.parse(new FileReader(new File("testfiles/timelineTest.ics")), handler);
-		ContentHandler h;
-		
 		FileInputStream stream = new FileInputStream("testfiles/timelineTest.ics");
 		CalendarBuilder b = new CalendarBuilder();
-		timelineView.addCategory(new TimelineCategory(b.build(stream)));
+		//timelineView.addCategory(new TimelineCategory(b.build(stream)));
+		
 		
 		SetupPane setupPane = new SetupPane(timelineView);
 		root.setLeft(setupPane);
@@ -76,30 +73,30 @@ public class TimelineFX extends Application {
 		primaryStage.setScene(scene);
 		primaryStage.setWidth(1300);
 		primaryStage.setHeight(700);
+		primaryStage.setOnShown(e->timelineView.zoomToContent());
 		primaryStage.show();
 	}
 
 	private void openFileDialog(Window window) {
 		File file;
 		FileChooser chooser = new FileChooser();
+		chooser.setInitialDirectory(new File("testfiles"));
 		chooser.setTitle("Open File");
 		chooser.getExtensionFilters().add(
 				new ExtensionFilter("Calendar Files", "*.ics"));
 		file = chooser.showOpenDialog(window);
-		if(file!=null && file.exists()) {
-			try {
-				FileInputStream stream = new FileInputStream(file);
-				CalendarBuilder b = new CalendarBuilder();
-				timelineView.addCategory(new TimelineCategory(b.build(stream)));
-			} catch(ParserException e) {
-				statusMessage("Can't open file - file format error.");
-				return;
-			} catch(IOException e) {
-				statusMessage("Can't open file - i/o-error");
-				return;
-			}
-			
+		try {
+			TimelineCategory c = ICalendarTools.importICS(file);
+			timelineView.addCategory(c);
+			timelineView.zoomToContent();
+		} catch(ParserException e) {
+			statusMessage("Can't open file - file format error.");
+			return;
+		} catch(IOException e) {
+			statusMessage("Can't open file - i/o-error");
+			return;
 		}
+			
 	}
 	
 	
