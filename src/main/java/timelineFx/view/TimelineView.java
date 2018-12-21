@@ -12,9 +12,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.cache2k.jcache.provider.generic.storeByValueSimulation.SimpleObjectCopyFactory;
-import org.w3c.dom.css.Rect;
-
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.beans.property.ObjectProperty;
@@ -22,10 +19,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Group;
-import javafx.scene.Node;
-import javafx.scene.Scene;
 import javafx.scene.control.Label;
-import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -39,8 +33,6 @@ import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
-import javafx.scene.shape.Line;
 import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Polyline;
 import javafx.scene.shape.Rectangle;
@@ -54,17 +46,23 @@ import timelineFx.data.TimelineCategory;
 import timelineFx.data.TimelineItem;
 
 /**
- * JavaFX Component for displaying and editing multiple {@link TimelineCategory}s.
+ * JavaFX Component for displaying and editing multiple 
+ * {@link TimelineCategory}s.
+ * 
  * @author Michael Hochmuth
  *
  */
 public class TimelineView extends StackPane{
+	/** For establishing drag-gestures */
 	private enum DragMode {
 		NONE, SELECT_TIME_FRAME, SCROLL
 	}
+	/** The UIMode determines how the TimelineView can be interacted with */
 	public enum UIMode {
 		VIEW, EDIT
 	}
+	
+	/** The ChronoFields, ascending in their unit's length */
 	private static List<ChronoField> fields = Arrays.asList(
 			ChronoField.SECOND_OF_MINUTE, ChronoField.MINUTE_OF_HOUR,
 			ChronoField.HOUR_OF_DAY,ChronoField.DAY_OF_MONTH,
@@ -81,23 +79,30 @@ public class TimelineView extends StackPane{
 	private long startSec = Long.MIN_VALUE, endSec = Long.MAX_VALUE;
 	private ChronoField currentUnit = ChronoField.DAY_OF_MONTH;
 	private Map<Double, LocalDateTime> grid = new HashMap<Double,LocalDateTime>();
-	/**
-	 * The Mode determines how the TimelineView can be interacted with
-	 */
+	/** The Mode determines how the TimelineView can be interacted with */
 	private ObjectProperty<UIMode> uiMode = 
 			new SimpleObjectProperty<UIMode>(UIMode.VIEW);
 	
 	// Temporaries for mouse gestures
 	private DragMode dragMode = DragMode.NONE;
 	private double dragX1;
-	private LocalDateTime dragTime1, dragTime2;
 	private Group dragOverlay;
 	
-	private Pane layerBackground, layerContent, layerContentTitles, layerTop, layerOverlay;
+	// Temporaries for editing
+	private Runnable editCancelAction;
+	
+	/** Layers for everything displayed in the view */
+	private Pane layerBackground, layerContent, 
+				 layerContentTitles, layerTop, layerOverlay;
+	/** Label for the time corresponding to the cursor-position */
 	private Label currentMouseTimeLabel;
 	
+	/** Categories displayed in this View in this list's order */
 	List<TimelineCategory> categories = new ArrayList<>();
 
+	/**
+	 * A new TimelineView - configured, but not filled with data.
+	 */
 	public TimelineView(TimelineGeneralConfiguration configuration) {
 		generalConf = configuration;
 		setConfiguration(new TimelineViewConfiguration());
@@ -134,85 +139,6 @@ public class TimelineView extends StackPane{
 		reshape();
 	}
 	
-	private void mousePressed(MouseEvent e){
-		if(e.getButton()==MouseButton.MIDDLE) {
-			dragMode = DragMode.SCROLL;
-			dragX1 = e.getX();
-		}
-	}
-	
-	private void mouseDragged(MouseEvent e) {
-		switch(dragMode) {
-		case SCROLL:
-			double dist = dragX1-e.getX();
-			TemporalAmount a = xToTimeAmount(dist);
-			
-			conf.setViewEnd(conf.getViewEnd().plus(a));
-			conf.setViewStart(conf.getViewStart().plus(a));
-//			if(e.getX()>dragX1) {
-//				// Right scroll
-//			} else {
-//				// Left Scroll
-//				conf.setViewStart(conf.getViewStart().plus(a));
-//				conf.setViewEnd(conf.getViewEnd().plus(a));
-//			}
-			dragX1 = e.getX();
-			break;
-		case SELECT_TIME_FRAME:
-			// SHOW TIME FRAME THING
-			double x1 = dragX1, x2 = e.getX();
-			if(x2 < x1) {
-				x2 = dragX1;
-				x1 = e.getX();
-			}
-			if(dragOverlay==null) {
-				dragOverlay = new Group();
-				layerOverlay.getChildren().add(dragOverlay);
-			}
-			dragOverlay.getChildren().clear();
-			Rectangle left = new Rectangle(getLeftOffset(), 0, 
-					x1-getLeftOffset(), getHeight());
-			left.setFill(viewChangeColor.deriveColor(0.0, 1.0, 1.0, 0.4));
-			dragOverlay.getChildren().add(left);
-			
-			Rectangle right = new Rectangle(x2, 0, 
-					getWidth()-getRightOffset()-x2, getHeight());
-			right.setFill(viewChangeColor.deriveColor(0.0, 1.0, 1.0, 0.4));
-			dragOverlay.getChildren().add(right);
-		
-			break;
-		} 
-		
-	}
-
-	private void mouseReleased(MouseEvent e) {
-		if(dragMode==DragMode.SELECT_TIME_FRAME) {
-			
-			double x2 = e.getX();
-			if(x2<dragX1) {
-				double t = x2;
-				x2 = dragX1;
-				dragX1 = t;
-			}
-			if(x2!=dragX1) {
-				LocalDateTime t1 = xToTime(dragX1);
-				LocalDateTime t2 = xToTime(x2);
-				conf.setViewStart(t1);
-				conf.setViewEnd(t2);
-			}
-			dragX1 = 0.0;
-		} 
-		dragMode = DragMode.NONE;
-		if(dragOverlay!=null) {
-			layerOverlay.getChildren().remove(dragOverlay);
-			dragOverlay = null;
-		}
-	}
-
-	private void mouseMoved(MouseEvent e) {
-		currentMouseTimeLabel.relocate(e.getX(), getHeight()-20.0);
-		currentMouseTimeLabel.setText(xToTime(e.getX()).toString());
-	}
 
 	/**
 	 * Sets a new configuration to guide this TimelineView's rendering.
@@ -230,13 +156,12 @@ public class TimelineView extends StackPane{
 	}
 	
 	/**
-	 * Repaints the whole thing from scratch. Might take like >400ms sometimes
-	 * but is used heavily
+	 * Repaints the whole thing from scratch. Might take some time, if the
+	 * number of displayed items is very big.
 	 */
 	public void reshape() {
 		startSec = conf.getViewStart().toEpochSecond(conf.getZoneOffset());
 		endSec = conf.getViewEnd().toEpochSecond(conf.getZoneOffset());
-		long measure = System.currentTimeMillis();
 		long seconds = endSec-startSec;
 		if(seconds == 0) return;
 		if(seconds<0) {
@@ -283,9 +208,7 @@ public class TimelineView extends StackPane{
 		Group timebar = new Group();
 		double gridUnits = getDisplayWidth()/conf.getGridUnitWidth();
 		if(gridUnits<=0.0) return;
-		System.out.println(""+gridUnits+" grid units");
 		long unitsPerTick = (int)Math.ceil(seconds/gridUnits);
-		System.out.println("would be "+unitsPerTick+" seconds per unit");
 		
 		long increment = 1;
 		if(unitsPerTick < 60) {
@@ -310,8 +233,6 @@ public class TimelineView extends StackPane{
 					100,250,500,1000,1500);
 		}
 
-		System.out.println("choose "+currentUnit+" as unit with increment "
-				+increment+" based on "+unitsPerTick);
 		double barY = getHeight()-100.0;
 		Rectangle timebarRect = new Rectangle(getLeftOffset(), barY, 
 				getWidth()-getRightOffset(), conf.getTimeBarWidth());
@@ -358,9 +279,12 @@ public class TimelineView extends StackPane{
 					start.plus(increment, currentUnit.getBaseUnit());
 			
 			// Major Ticks?
-			if(fields.indexOf(currentUnit)+1 < fields.size() && start.get(fields.get(fields.indexOf(currentUnit)+1)) !=
+			if(fields.indexOf(currentUnit)+1 < fields.size() && 
+					start.get(fields.get(fields.indexOf(currentUnit)+1)) !=
 					next.get(fields.get(fields.indexOf(currentUnit)+1))){
-				LocalDateTime major = next.with(currentUnit, currentUnit.range().getMinimum());
+				LocalDateTime major = next.with(
+						currentUnit, currentUnit.range().getMinimum());
+				
 				if(major.isBefore(conf.getViewEnd())) {
 					x = timeToX(major);
 					
@@ -393,12 +317,15 @@ public class TimelineView extends StackPane{
 					case MONTH_OF_YEAR:
 						text = "" + next.getYear();
 						break;
+						
+					default:	
 					}
 					ticklabel = new Text(text);
 					ticklabel.relocate(
 							x-ticklabel.getBoundsInLocal().getWidth()/2.0, 
 							y2);
-					ticklabel.getStyleClass().add(TimelineCSS.CLASS_TIMEBAR_TICK_LABEL);
+					ticklabel.getStyleClass().add(
+							TimelineCSS.CLASS_TIMEBAR_TICK_LABEL);
 					ticklabel.setFont(majorTickFont);
 					timebar.getChildren().add(ticklabel);
 
@@ -591,7 +518,6 @@ public class TimelineView extends StackPane{
 			
 			double editorY = lowerY;
 			catNamePane.addEventFilter(MouseEvent.MOUSE_CLICKED, e -> {
-				System.out.println("p");
 				if(e.getClickCount()==2) {
 					TextField a = new TextField(cat.getName());
 					if(startEdit(()-> {
@@ -620,42 +546,48 @@ public class TimelineView extends StackPane{
 			
 		}
 		layerOverlay.getChildren().add(currentMouseTimeLabel);
-		System.out.println("reshape in " + 
-				(System.currentTimeMillis()-measure)+" ms");
-	}
-	
-	private Runnable editCancelAction;
-	
-	/**
-	 * Start a new Edit. This cancels an ongoing Editing process, if present.
-	 * @param onCancel Runnable to execute when the new Edit is canceled.
-	 * @return false if editing right now isn't allowed
-	 */
-	private boolean startEdit(Runnable onCancel) {
-		if(getUiMode()!=UIMode.EDIT) return false;
-		
-		cancelEdit();
-		editCancelAction = onCancel;
-		return true;
 	}
 	
 	/**
-	 * If there is an editing operation running, this cancels it.
+	 * Get the configuration defining this View's appearence.
 	 */
-	public void cancelEdit() {
-		if(editCancelAction!=null) 
-			editCancelAction.run();
-		editCancelAction = null;
+	public TimelineViewConfiguration getConfiguration() {
+		return conf;
+	}
+
+	
+	public final ObjectProperty<UIMode> uiModeProperty() {
+		return this.uiMode;
 	}
 	
+	public final UIMode getUiMode() {
+		return this.uiModeProperty().get();
+	}
+	
+	public final void setUiMode(final UIMode uiMode) {
+		this.uiModeProperty().set(uiMode);
+	}
+	
+
 	/**
 	 * Adds the given {@link TimelineCategory} to the
 	 * list of categories this TimelineView shows.
-	 * @param cat
 	 */
 	public void addCategory(TimelineCategory cat) {
 		if(!categories.contains(cat)) {
 			categories.add(cat);
+			reshape();
+		}
+	}
+	
+	/**
+	 * Removes the given {@link TimelineCategory} and repaints,
+	 * if it is in the list of categories.
+	 */
+	public void removeCategory(TimelineCategory cat) {
+		int i;
+		if((i=categories.indexOf(cat))!=-1) {
+			categories.remove(i);
 			reshape();
 		}
 	}
@@ -681,9 +613,12 @@ public class TimelineView extends StackPane{
 	}
 
 	/**
+	 * Scales the view on the time-axis relative to the given x-Position.
 	 * 
-	 * @param xPivot
-	 * @param amount Negative Zooms in
+	 * @param xPivot	X-Position to zoom in or out of
+	 * @param amount 	Amount to zoom. 
+	 * 					Negative values decrease the timespan displayed, 
+	 * 					positive ones increase it.
 	 */
 	public void scale(double xPivot, double amount) {
 		double factor;
@@ -707,13 +642,122 @@ public class TimelineView extends StackPane{
 		
 		conf.setViewStart(newStart);
 		conf.setViewEnd(newEnd);
+	}
+	
+	////////////////////////////////////////////////////////////////////////////
+	/*
+	* Functions for user-interaction
+	*/
+	
+	private void mousePressed(MouseEvent e){
+		if(e.getButton()==MouseButton.MIDDLE) {
+			dragMode = DragMode.SCROLL;
+			dragX1 = e.getX();
+		}
+	}
+	
+	private void mouseDragged(MouseEvent e) {
+		switch(dragMode) {
+		case SCROLL:
+			double dist = dragX1-e.getX();
+			TemporalAmount a = xToTimeAmount(dist);
+			
+			conf.setViewEnd(conf.getViewEnd().plus(a));
+			conf.setViewStart(conf.getViewStart().plus(a));
+			dragX1 = e.getX();
+			break;
+			
+		case SELECT_TIME_FRAME:
+			double x1 = dragX1, x2 = e.getX();
+			if(x2 < x1) {
+				x2 = dragX1;
+				x1 = e.getX();
+			}
+			if(dragOverlay==null) {
+				dragOverlay = new Group();
+				layerOverlay.getChildren().add(dragOverlay);
+			}
+			dragOverlay.getChildren().clear();
+			Rectangle left = new Rectangle(getLeftOffset(), 0, 
+					x1-getLeftOffset(), getHeight());
+			left.setFill(viewChangeColor.deriveColor(0.0, 1.0, 1.0, 0.4));
+			dragOverlay.getChildren().add(left);
+			
+			Rectangle right = new Rectangle(x2, 0, 
+					getWidth()-getRightOffset()-x2, getHeight());
+			right.setFill(viewChangeColor.deriveColor(0.0, 1.0, 1.0, 0.4));
+			dragOverlay.getChildren().add(right);
+		
+			break;
+			
+		default:
+			return;
+		} 
+		
+	}
 
+	private void mouseReleased(MouseEvent e) {
+		if(dragMode==DragMode.SELECT_TIME_FRAME) {
+			
+			double x2 = e.getX();
+			if(x2<dragX1) {
+				double t = x2;
+				x2 = dragX1;
+				dragX1 = t;
+			}
+			if(x2!=dragX1) {
+				LocalDateTime t1 = xToTime(dragX1);
+				LocalDateTime t2 = xToTime(x2);
+				conf.setViewStart(t1);
+				conf.setViewEnd(t2);
+			}
+			dragX1 = 0.0;
+		} 
+		dragMode = DragMode.NONE;
+		if(dragOverlay!=null) {
+			layerOverlay.getChildren().remove(dragOverlay);
+			dragOverlay = null;
+		}
+	}
+
+	private void mouseMoved(MouseEvent e) {
+		currentMouseTimeLabel.relocate(e.getX(), getHeight()-20.0);
+		currentMouseTimeLabel.setText(xToTime(e.getX()).toString());
+	}
+
+
+	
+	/**
+	 * Start a new Edit. This cancels an ongoing Editing process, if present.
+	 * @param onCancel Runnable to execute when the new Edit is canceled.
+	 * @return false if editing right now isn't allowed
+	 */
+	private boolean startEdit(Runnable onCancel) {
+		if(getUiMode()!=UIMode.EDIT) return false;
+		
+		cancelEdit();
+		editCancelAction = onCancel;
+		return true;
+	}
+	
+	/**
+	 * If there is an editing operation running, this cancels it.
+	 */
+	public void cancelEdit() {
+		if(editCancelAction!=null) 
+			editCancelAction.run();
+		editCancelAction = null;
 	}
 	
 	private void bindReshape(Observable... p) {
 		for(Observable pp : p)
 			pp.addListener(c->reshape());
 	}
+	
+	////////////////////////////////////////////////////////////////////////////
+	/*
+	 * Utility Functions for reshape
+	 */
 	
 	/**
 	 * Find the smallest of the given increment-values that's bigger/equal to 
@@ -732,6 +776,7 @@ public class TimelineView extends StackPane{
 		return res;
 	}
 	
+	/** Get the x-Position at which time t is displayed. Might be off-screen */
 	double timeToX(LocalDateTime t) {
 		if(startSec==endSec) return 0.0;
 		
@@ -741,6 +786,7 @@ public class TimelineView extends StackPane{
 		
 	}
 	
+	/** Get the Time corresponding to the x-position */
 	LocalDateTime xToTime(double x) {
 		if(startSec>=endSec) return LocalDateTime.now();
 		
@@ -750,11 +796,16 @@ public class TimelineView extends StackPane{
 		return LocalDateTime.ofEpochSecond(s, 0, conf.getZoneOffset());
 	}
 	
+	/** Get the Duration between two positions with distance of x */
 	Duration xToTimeAmount(double x) {
 		return xToTimeAmount(x,false);
-		
 	}
-	
+
+	/**
+	 * Get the Duration between two positions with distance of x 
+	 * @param x
+	 * @param atLeastOneSecond If true, the duration is not shorter than 1 sec
+	 */
 	Duration xToTimeAmount(double x, boolean atLeastOneSecond) {
 		if(startSec == endSec) 
 			return atLeastOneSecond?Duration.ofSeconds(1):Duration.ZERO;
@@ -764,35 +815,20 @@ public class TimelineView extends StackPane{
 		return Duration.ofSeconds(seconds);
 	}
 	
+	/** Left Border */
 	double getLeftOffset() {
 		return conf.getSideBarWidth();
 	}
 	
+	/** Right Border */
 	double getRightOffset() {
 		return conf.getRightBarWidth();
 	}
 	
+	/** Width between the borders */
 	double getDisplayWidth() {
 		return getWidth()-getLeftOffset()-getRightOffset();
 	}
 
-	public TimelineViewConfiguration getConfiguration() {
-		return conf;
-	}
-
-	public final ObjectProperty<UIMode> uiModeProperty() {
-		return this.uiMode;
-	}
-	
-
-	public final UIMode getUiMode() {
-		return this.uiModeProperty().get();
-	}
-	
-
-	public final void setUiMode(final UIMode uiMode) {
-		this.uiModeProperty().set(uiMode);
-	}
-	
 	
 }

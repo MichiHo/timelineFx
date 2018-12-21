@@ -4,6 +4,10 @@
   <artifactId>timelineFx</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <name>TimelineFX</name>
+  <properties>
+    <maven.compiler.source>6</maven.compiler.source>
+    <maven.compiler.target>1.6</maven.compiler.target>
+  </properties>
   <dependencies>
   	<dependency>
   		<groupId>org.mnode.ical4j</groupId>

@@ -1,19 +1,22 @@
 package timelineFx.data;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
 
 import javafx.scene.paint.Color;
 import timelineFx.data.TimelineCategory;
 import timelineFx.data.TimelineItem;
+import timelineFx.view.TimelineView;
 
+/**
+ * A set of {@link TimelineItem}s associated with a name and other
+ * attributes. Displayed with a custom color in a {@link TimelineView}.
+ * 
+ * @author Michael Hochmuth
+ *
+ */
 public class TimelineCategory {
-	private List<TimelineItem> items = new Vector<TimelineItem>();
-	private Color color;
-	private String name;
-	
 	private static double defaultColorSaturation = 0.7,
 			defaultColorBrightness = 1.0;
 	private static List<Color> defaultColors = Arrays.asList(
@@ -28,6 +31,11 @@ public class TimelineCategory {
 		return defaultColors.get(defaultColorIndex++ %defaultColors.size());
 		
 	}
+	
+	private List<TimelineItem> items = new Vector<TimelineItem>();
+	private Color color;
+	private String name;
+	
 	
 	public TimelineCategory(String name) {
 		this.name = name;

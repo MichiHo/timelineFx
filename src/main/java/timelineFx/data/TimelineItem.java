@@ -12,12 +12,20 @@ import java.time.LocalDateTime;
  *
  */
 public class TimelineItem {
+	
+	private String name;
+	private String description;
+	private String ID;
+	private LocalDateTime start;
+	private LocalDateTime end;
+	
 	/**
-	 * @param name
-	 * @param description
-	 * @param iD
-	 * @param start
-	 * @param end
+	 * @param name			Displayed Name
+	 * @param description	
+	 * @param id			ID (should be unique within a category)
+	 * @param start			StartDate
+	 * @param end			If EndDate = StartDate, this Item is marked as 
+	 * 						without duration
 	 */
 	public TimelineItem(String name, String description, String id,
 			LocalDateTime start, LocalDateTime end) {
@@ -28,6 +36,9 @@ public class TimelineItem {
 		this.end = end;
 	}
 	
+	/**
+	 * @param id ID (should be unique within a category)
+	 */
 	public TimelineItem(String id) {
 		this.ID = id;
 		name = "";
@@ -36,14 +47,6 @@ public class TimelineItem {
 		end = LocalDateTime.now();
 	}
 
-	private String name;
-	private String description;
-	private String ID;
-	private LocalDateTime start;
-	private LocalDateTime end;
-	
-	
-	
 	public String getDescription() {
 		return description;
 	}
@@ -56,6 +59,11 @@ public class TimelineItem {
 		return start;
 	}
 
+	/**
+	 * Set the start date of this Item. If a date after the EndDate is set, the
+	 * EndDate is set to it as well, resulting in an item without duration
+	 * @param start StartDate
+	 */
 	public void setStart(LocalDateTime start) {
 		if(start.isAfter(this.end)) {
 			end = start;
@@ -67,6 +75,11 @@ public class TimelineItem {
 		return end;
 	}
 
+	/**
+	 * Set the end date of this Item. If a date before the StartDate is set, the
+	 * StartDate is set to it as well, resulting in an item without duration
+	 * @param end EndDate
+	 */
 	public void setEnd(LocalDateTime end) {
 		if(end.isBefore(start)) {
 			start=end;
@@ -74,6 +87,10 @@ public class TimelineItem {
 		this.end = end;
 	}
 
+	/**
+	 * Get the ID, which should be unique within the Category this item is in
+	 * @return
+	 */
 	public String getID() {
 		return ID;
 	}

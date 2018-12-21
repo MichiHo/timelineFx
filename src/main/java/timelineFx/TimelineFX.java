@@ -2,11 +2,8 @@ package timelineFx;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 import javafx.application.Application;
-import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
@@ -14,12 +11,7 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.ToolBar;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
-import javafx.scene.input.KeyCombination.Modifier;
-import javafx.scene.input.KeyCombination.ModifierValue;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
@@ -45,21 +37,16 @@ public class TimelineFX extends Application {
 	TimelineView timelineView;
 	ToggleGroup modeToggles;
 	TimelineGeneralConfiguration conf;
+	File latestOpenDirectory = null;
 	
 	
 	@Override
 	public void start(Stage primaryStage) throws Exception {
-		//globalShortcuts.put(, value)
-		
 		root = new BorderPane();
-		
-		
 		conf = new TimelineGeneralConfiguration();
-		
 		timelineView = new TimelineView(conf);
 		BorderPane timelinePane = new BorderPane();
 		timelinePane.setCenter(timelineView);
-		
 		
 		// MODE SELECT
 		modeToggles = new ToggleGroup();
@@ -120,13 +107,18 @@ public class TimelineFX extends Application {
 	private void openFileDialog(Window window) {
 		File file;
 		FileChooser chooser = new FileChooser();
-		chooser.setInitialDirectory(new File("testfiles"));
+		if(latestOpenDirectory!=null && latestOpenDirectory.exists())
+			chooser.setInitialDirectory(latestOpenDirectory);
 		chooser.setTitle("Open File");
 		chooser.getExtensionFilters().add(
 				new ExtensionFilter("Calendar Files", "*.ics"));
 		file = chooser.showOpenDialog(window);
 		if(file==null || !file.exists())
 			return;
+		
+		File parent = file.getParentFile();
+		if(parent!=null && parent.exists())
+			latestOpenDirectory = parent;
 		
 		try {
 			TimelineCategory c = ICalendarTools.importICS(file);
@@ -144,7 +136,7 @@ public class TimelineFX extends Application {
 	
 	
 	public void statusMessage(String message) {
-		
+		// TODO add Status-bar
 	}
 
 	public static void main(String[] args) {

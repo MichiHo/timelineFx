@@ -11,16 +11,29 @@ import javafx.scene.control.Slider;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 
+/**
+ * Panel displaying the visual properties of a TimelineView
+ * (as modeled in {@link TimelineViewConfiguration} as a vertical
+ * JavaFX-Component with sliders.
+ * 
+ * @author Michael Hochmuth
+ *
+ */
 public class SetupPane extends VBox{
 	private TimelineViewConfiguration conf;
+	@SuppressWarnings("unused")
 	private TimelineView view;
+	
+	/**
+	 * Construct a SetupPane for controlling the Configuration of
+	 * the given {@link TimelineView}.
+	 */
 	public SetupPane(TimelineView view) {
 		this.view = view;
 		this.conf = view.getConfiguration();
 		
 		setPadding(new Insets(5.0));
 		
-		Slider slider;
 		Button button;
 		
 		add(caption("Zoom"));
@@ -59,33 +72,43 @@ public class SetupPane extends VBox{
 		
 	}
 	
+	/**
+	 * Create a label for e.g. a property name
+	 */
 	private Label label(String text) {
 		Label label = new Label(text);
 		label.setPadding(new Insets(5.0,0.0,0.0,0.0));
 		return label;
 	}
 	
+	/**
+	 * Create a slider mapped to the property between min and max
+	 */
+	@SuppressWarnings("unused")
 	private Slider slider(int min, int max, IntegerProperty prop) {
 		Slider sl = new Slider(min, max, min);
 		sl.valueProperty().bindBidirectional(prop);
 		return sl;
 	}
 	
+	/**
+	 * Create a slider mapped to the property between min and max
+	 */
 	private Slider slider(double min, double max, DoubleProperty prop) {
 		Slider sl = new Slider(min, max, min);
 		sl.valueProperty().bindBidirectional(prop);
 		return sl;
 	}
 	
+	/**
+	 * Shorthand for getChildren().add()
+	 */
 	private void add(Node n) {
 		getChildren().add(n);
 	}
 	
 	/**
 	 * Creates a formatted caption for the Menu
-	 * 
-	 * @param text
-	 * @return
 	 */
 	private Node caption(String text) {
 		Label l = new Label(text);

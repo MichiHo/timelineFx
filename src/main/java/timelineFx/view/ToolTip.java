@@ -9,10 +9,8 @@ import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.CornerRadii;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
 import timelineFx.data.TimelineItem;
 
 /**
@@ -22,10 +20,14 @@ import timelineFx.data.TimelineItem;
  *
  */
 public class ToolTip extends StackPane{
-	private Object currentThing = null;
 	
+	private Object currentThing = null;
 	private Label title, text;
 	
+	/**
+	 * A new, yet hidden ToolTip. Make it visible by defining something
+	 * to describe with {@link ToolTip#show(Object, double, double)}.
+	 */
 	public ToolTip() {
 		setBackground(new Background(new BackgroundFill(Color.LIGHTGRAY, 
 				new CornerRadii(3.0), Insets.EMPTY)));
@@ -50,9 +52,10 @@ public class ToolTip extends StackPane{
 	 * Hides the tooltip otherwise, of if NULL is passed.
 	 * The given Position is only used if the Object
 	 * changes.
-	 * @param thing
-	 * @param x 
-	 * @param y
+	 * @param thing	Object to describe. In case, it isn't of a
+	 * 				supported type, toString() is used instead.
+	 * @param x 	Position on Screen
+	 * @param y		Position on Screen
 	 */
 	public void show(Object thing, double x, double y) {
 		if(thing == null) {
@@ -91,6 +94,10 @@ public class ToolTip extends StackPane{
 						.ofLocalizedDateTime(FormatStyle.LONG)));
 				builder.append('\n');
 			}
+			text.setText(builder.toString());
+		} else {
+			title.setText("Unsupported Type");
+			text.setText(thing.toString());
 		}
 	}
 	
@@ -101,6 +108,8 @@ public class ToolTip extends StackPane{
 	public void hide() {
 		currentThing = null;
 		setVisible(false);
+		title.setText("-");
+		text.setText("-");
 	}
 	
 }

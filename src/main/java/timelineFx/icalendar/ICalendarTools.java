@@ -2,12 +2,10 @@ package timelineFx.icalendar;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.HashMap;
-import java.util.Vector;
 
 import net.fortuna.ical4j.data.CalendarBuilder;
 import net.fortuna.ical4j.data.ParserException;
@@ -15,13 +13,13 @@ import net.fortuna.ical4j.model.Calendar;
 import net.fortuna.ical4j.model.Property;
 import net.fortuna.ical4j.model.component.CalendarComponent;
 import net.fortuna.ical4j.model.component.VEvent;
-import net.fortuna.ical4j.model.property.Summary;
 import timelineFx.data.TimelineCategory;
 import timelineFx.data.TimelineItem;
 
 /**
  * Class with static methods for importing ICS files as 
  * {@link TimelineCategory}.
+ * 
  * @author Michael Hochmuth
  *
  */
@@ -79,6 +77,9 @@ public class ICalendarTools {
 						ZoneId.systemDefault()));
 	}
 	
+	/**
+	 * Return the Value of p or an empty string if it isn't present.
+	 */
 	private static String str(Property p) {
 		if(p==null)
 			return "";

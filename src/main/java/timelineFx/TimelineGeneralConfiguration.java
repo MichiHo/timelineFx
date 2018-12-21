@@ -24,6 +24,11 @@ public class TimelineGeneralConfiguration {
 	private ObjectProperty<GridSnapMode> gridSnapMode = 
 			new SimpleObjectProperty<>(GridSnapMode.MINOR_TICKS);
 
+	////////////////////////////////////////////////////////////////////////////
+	/*
+	* Property / get / set methods
+	*/
+	
 	public final ObjectProperty<GridSnapMode> gridSnapModeProperty() {
 		return this.gridSnapMode;
 	}

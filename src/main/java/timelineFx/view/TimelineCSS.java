@@ -6,9 +6,11 @@ package timelineFx.view;
  *
  */
 public class TimelineCSS {
-	public static final String CLASS_VIEWER = "tl-viewer";
-	public static final String CLASS_EVENT = "tl-event";
-	public static final String CLASS_TIMEBAR = "tl-timebar";
-	public static final String CLASS_TIMEBAR_TICK = "tl-timebar-tick";
-	public static final String CLASS_TIMEBAR_TICK_LABEL = "tl-timebar-tick-label";
+	
+	public static final String 
+			CLASS_VIEWER = "tl-viewer",
+			CLASS_EVENT = "tl-event",
+			CLASS_TIMEBAR = "tl-timebar",
+			CLASS_TIMEBAR_TICK = "tl-timebar-tick",
+			CLASS_TIMEBAR_TICK_LABEL = "tl-timebar-tick-label";
 }

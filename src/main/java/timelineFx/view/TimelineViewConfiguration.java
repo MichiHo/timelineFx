@@ -28,47 +28,30 @@ import timelineFx.data.DateTimeProperty;
  */
 public class TimelineViewConfiguration {
 	private List<InvalidationListener> listeners = new Vector<InvalidationListener>();
-	/**
-	 * If true, items that are only partially inside the view are
-	 * still shown
-	 */
+	/** If true, items that are only partially inside the view are still shown */
 	private BooleanProperty showProtudingItems = new SimpleBooleanProperty(true);
 	
-	/**
-	 * First Displayed Time in the current View
-	 */
+	/** First Displayed Time in the current View */
 	private DateTimeProperty viewStart = new DateTimeProperty(LocalDateTime.of(2018, 1, 1, 0, 0));
 	
-	/**
-	 * Last Displayed Time in the current View
-	 */
+	/** Last Displayed Time in the current View */
 	private DateTimeProperty viewEnd = new DateTimeProperty(LocalDateTime.now());
 	
-	/**
-	 * {@link ZoneOffset} to be used to place the {@link LocalDateTime}s
-	 */
+	/** {@link ZoneOffset} to be used to place the {@link LocalDateTime}s */
 	private ObjectProperty<ZoneOffset> zoneOffset = 
 			new SimpleObjectProperty<ZoneOffset>(ZoneOffset.UTC);
 
-	/**
-	 * Locale used in the Timeline
-	 */
+	/** Locale used in the Timeline */
 	private ObjectProperty<Locale> locale = 
 			new SimpleObjectProperty<Locale>(Locale.ENGLISH);
 	
-	/**
-	 * Width of the SideBar with the category names
-	 */
+	/** Width of the SideBar with the category names */
 	private DoubleProperty sideBarWidth = new SimpleDoubleProperty(200.0);
 
-	/**
-	 * Width of the right Bar with some leap arrows
-	 */
+	/** Width of the right Bar with some leap arrows */
 	private DoubleProperty rightBarWidth = new SimpleDoubleProperty(10.0);
 	
-	/**
-	 * Width of the Line that is the TimeBar, in pixels
-	 */
+	/** Width of the Line that is the TimeBar, in pixels */
 	private DoubleProperty timeBarWidth = new SimpleDoubleProperty(20.0);
 	
 	/**
@@ -77,14 +60,13 @@ public class TimelineViewConfiguration {
 	 */
 	private DoubleProperty gridUnitWidth = new SimpleDoubleProperty(100.0);
 	
-
+	/** Font-Size for the dates at the minor ticks of the timebar */
 	private DoubleProperty minorTickFontSize = new SimpleDoubleProperty(15.0);
 
+	/** Font-Size for the dates at the major ticks of the timebar */
 	private DoubleProperty majorTickFontSize = new SimpleDoubleProperty(20.0);
 	
-	/**
-	 * Distance, in pixels, between the timebar and the first categorie's items
-	 */
+	/** Distance, in pixels, between the timebar and the first categorie's items */
 	private DoubleProperty timebarItemDistance = new SimpleDoubleProperty(10.0);
 	
 	/**
@@ -110,9 +92,10 @@ public class TimelineViewConfiguration {
 	 */
 	private DoubleProperty itemPadding = new SimpleDoubleProperty(5.0);
 	
-	
+	/** Size of the Font used for the item's names */
 	private DoubleProperty itemFontSize = new SimpleDoubleProperty(12.0);
 	
+	/** Name of the Font used for the item's names */
 	private StringProperty itemFontName = new SimpleStringProperty("Corbel");
 
 	/**
@@ -122,11 +105,12 @@ public class TimelineViewConfiguration {
 	 */
 	private DoubleProperty itemColorShade = new SimpleDoubleProperty(0.5);
 	
-	/**
-	 * Distance, in pixels, between the Items of two categories
-	 */
+	/** Distance, in pixels, between the Items of two categories */
 	private DoubleProperty categoryDistance = new SimpleDoubleProperty(20.0);
 	
+	/**
+	 * A new {@link TimelineViewConfiguration} with default values.
+	 */
 	public TimelineViewConfiguration() {
 		InvalidationListener l = o -> notifyListeners(o);
 		
@@ -167,6 +151,11 @@ public class TimelineViewConfiguration {
 	public void removeListener(InvalidationListener l) {
 		listeners.remove(l);
 	}
+	
+	////////////////////////////////////////////////////////////////////////////
+	/*
+	 * Property / get / set methods
+	 */
 	
 	public final BooleanProperty showProtudingItemsProperty() {
 		return this.showProtudingItems;
