@@ -2,12 +2,12 @@
 
 ## Intentions
 
-TimelineFX is a JavaFX application to browse, edit and filter events in a timeline-view, enabling better visualization of timespans in any scale. 
+TimelineFX is a Java application to browse, edit and filter events in a timeline-view, enabling better visualization of timespans in any scale. 
 The intention is to provide an alternative to the normal ways in which calendars are displayed (tables containing a month/day/etc), that really incorporates the lengths of events and the time between them.
 
 The application supports importing whole calendars in *.ical* Format (the result of e.g. exporting a Google calendar)
 
-![alt text](doc/screenshot.png)
+![Screenshot](doc/screenshot.png)
 
 ## Possible Use Cases
 
@@ -15,7 +15,7 @@ The application supports importing whole calendars in *.ical* Format (the result
 *	Visualize the times spent on certain activities / projects
 *	Schedule things in the scale of years / days / seconds
 
-![alt text](doc/screenshot_2.png)
+![Screenshot with years and two categories](doc/screenshot_2.png)
 
 ## Current State
 
@@ -31,5 +31,7 @@ The application supports importing whole calendars in *.ical* Format (the result
 *	*Filter* Items using certain rules (e.g. regex-match, duration etc) to only keep the important stuff
 *	Different *Level of Detail* at different scales to not clutter the view (e.g. shorter items disappear, deciding the importance of items, etc) 
 *	Combining with *Picture*-Folders - displaying the pictures at the time they were taken under the timebar for scrolling through
+
+### Contribution
 
 Until now this was just a project I did myself and until April 2019 I won't have much time to develop further but I *do* want to continue with it. If you like the project or the general idea and also haven't yet found something similar (or if you actually have) than I would love to hear from you!
