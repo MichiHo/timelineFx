@@ -38,6 +38,10 @@ public class TimelineCategory {
 	public String getName() {
 		return name;
 	}
+	
+	public void setName(String name) {
+		this.name = name.trim();
+	}
 
 	/**
 	 * Sorts the List of Items this Category holds by

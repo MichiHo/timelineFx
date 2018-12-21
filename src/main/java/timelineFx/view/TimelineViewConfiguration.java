@@ -20,7 +20,7 @@ import javafx.beans.property.StringProperty;
 import timelineFx.data.DateTimeProperty;
 
 /**
- * Class with all configuration needed (besides the Stylesheet)
+ * Class with all configuration needed
  * for showing timelines (partially or whole).
  * 
  * @author Michael Hochmuth

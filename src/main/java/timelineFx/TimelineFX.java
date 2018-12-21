@@ -1,32 +1,36 @@
 package timelineFx;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.IOException;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 import javafx.application.Application;
+import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.control.ToggleGroup;
+import javafx.scene.control.ToolBar;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
+import javafx.scene.input.KeyCombination.Modifier;
+import javafx.scene.input.KeyCombination.ModifierValue;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Stage;
 import javafx.stage.Window;
-import net.fortuna.ical4j.data.CalendarBuilder;
-import net.fortuna.ical4j.data.CalendarParser;
-import net.fortuna.ical4j.data.CalendarParserFactory;
-import net.fortuna.ical4j.data.ContentHandler;
 import net.fortuna.ical4j.data.ParserException;
-import net.fortuna.ical4j.model.Calendar;
 import timelineFx.data.TimelineCategory;
-import timelineFx.icalendar.ICSContentHandler;
 import timelineFx.icalendar.ICalendarTools;
 import timelineFx.view.SetupPane;
 import timelineFx.view.TimelineView;
+import timelineFx.view.TimelineView.UIMode;
 
 /**
  * Main Window for the Timeline-Application.
@@ -39,18 +43,50 @@ public class TimelineFX extends Application {
 	Scene scene;
 	BorderPane root;
 	TimelineView timelineView;
+	ToggleGroup modeToggles;
+	TimelineGeneralConfiguration conf;
+	
 	
 	@Override
 	public void start(Stage primaryStage) throws Exception {
+		//globalShortcuts.put(, value)
+		
 		root = new BorderPane();
 		
-		timelineView = new TimelineView();
-		root.setCenter(timelineView);
 		
-		FileInputStream stream = new FileInputStream("testfiles/timelineTest.ics");
-		CalendarBuilder b = new CalendarBuilder();
-		//timelineView.addCategory(new TimelineCategory(b.build(stream)));
+		conf = new TimelineGeneralConfiguration();
 		
+		timelineView = new TimelineView(conf);
+		BorderPane timelinePane = new BorderPane();
+		timelinePane.setCenter(timelineView);
+		
+		
+		// MODE SELECT
+		modeToggles = new ToggleGroup();
+		ToggleButton modeToggleView = new ToggleButton("View");
+		ToggleButton modeToggleEdit = new ToggleButton("Edit");
+		modeToggles.getToggles().add(modeToggleView);		
+		modeToggles.getToggles().add(modeToggleEdit);
+		
+		timelineView.uiModeProperty().addListener((c,o,n)->{
+			switch(n) {
+			case EDIT:
+				modeToggles.selectToggle(modeToggleEdit);
+				
+				break;
+			case VIEW:
+				modeToggles.selectToggle(modeToggleView);
+				
+				break;
+			}
+		});
+		modeToggles.selectedToggleProperty().addListener((c,o,n)->{
+			if(n==modeToggleEdit) timelineView.setUiMode(UIMode.EDIT);
+			else if(n==modeToggleView) timelineView.setUiMode(UIMode.VIEW);
+		});
+		
+		timelinePane.setTop(new ToolBar(modeToggleView,modeToggleEdit));
+		root.setCenter(timelinePane);
 		
 		SetupPane setupPane = new SetupPane(timelineView);
 		root.setLeft(setupPane);
@@ -68,9 +104,13 @@ public class TimelineFX extends Application {
 		root.setTop(menuBar);
 		
 		root.getStylesheets().add("timelineStyle.css");
-		scene = new Scene(root);
 		
+		scene = new Scene(root);
+		scene.getAccelerators().put(
+				KeyCombination.valueOf("CTRL+o"), 
+				()->openFileDialog(primaryStage));
 		primaryStage.setScene(scene);
+		primaryStage.setTitle("Timeline");
 		primaryStage.setWidth(1300);
 		primaryStage.setHeight(700);
 		primaryStage.setOnShown(e->timelineView.zoomToContent());
@@ -85,6 +125,9 @@ public class TimelineFX extends Application {
 		chooser.getExtensionFilters().add(
 				new ExtensionFilter("Calendar Files", "*.ics"));
 		file = chooser.showOpenDialog(window);
+		if(file==null || !file.exists())
+			return;
+		
 		try {
 			TimelineCategory c = ICalendarTools.importICS(file);
 			timelineView.addCategory(c);
