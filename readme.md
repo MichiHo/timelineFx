@@ -1,5 +1,7 @@
 # TimelineFX
 
+[Download latest executable version](http://michaelhochmuth.de/code/timelineFx/TimelineFx_0.0.1.jar).
+
 ## Intentions
 
 TimelineFX is a Java application to browse, edit and filter events in a timeline-view, enabling better visualization of timespans in any scale. 
